@@ -1,8 +1,6 @@
 package com.example.demo.routing;
 
-import com.example.demo.routing.DynamicDataSource;
-import com.example.demo.routing.DataSourceType;
-
+import com.example.demo.aspect.WriterDataSource;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
@@ -10,16 +8,26 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 import javax.sql.DataSource;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
 public class DataSourceConfig {
+
     @Bean
-    @ConfigurationProperties("spring.datasource.writer")
-    public DataSource remoteDataSource() {
-        return DataSourceBuilder.create().build();
+//    @ConfigurationProperties("spring.datasource.writer")
+    public DataSource remoteDataSource() throws SQLException {
+
+        DataSource ds = DataSourceBuilder.create()
+                .url("jdbc:mysql://localhost:3306/test1")
+                .username("root")
+                .password("")
+                .driverClassName("com.mysql.cj.jdbc.Driver")
+                .build();
+        return new WriterDataSource(ds);
     }
+
 
     @Bean
     @ConfigurationProperties("spring.datasource.reader")
