@@ -1,7 +1,6 @@
 package com.example.demo.service;
 
 
-import com.example.demo.aspect.DataSource;
 import com.example.demo.entity.DataBox;
 import com.example.demo.repository.DataBoxRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +9,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-@DataSource
 public class DataBoxService {
     @Autowired
     private DataBoxRepository dataBoxRepository;
