@@ -1,46 +1,58 @@
 package com.example.demo.routing;
 
-import com.example.demo.aspect.WriterDataSource;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.jdbc.DataSourceBuilder;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.env.Environment;
 
 import javax.sql.DataSource;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @author Dominic Gunn
+ */
 @Configuration
 public class DataSourceConfig {
 
-    @Bean
-//    @ConfigurationProperties("spring.datasource.writer")
-    public DataSource remoteDataSource() throws SQLException {
+    private static final String PRIMARY_DATASOURCE_PREFIX = "spring.datasource.writer";
+    private static final String REPLICA_DATASOURCE_PREFIX = "spring.datasource.reader";
 
-        DataSource ds = DataSourceBuilder.create()
-                .url("jdbc:mysql://localhost:3306/test1")
-                .username("root")
-                .password("")
-                .driverClassName("com.mysql.cj.jdbc.Driver")
-                .build();
-        return new WriterDataSource(ds);
-    }
-
+    @Autowired
+    private Environment environment;
 
     @Bean
-    @ConfigurationProperties("spring.datasource.reader")
-    public DataSource localDataSource() {
-        return DataSourceBuilder.create().build();
-    }
-
-    @Bean(name = "dynamicDataSource")
     @Primary
-    public DynamicDataSource dataSource(DataSource remoteDataSource, DataSource localDataSource) {
-        Map<Object, Object> targetDataSources = new HashMap<>();
-        targetDataSources.put(DataSourceType.WRITER.name(), remoteDataSource);
-        targetDataSources.put(DataSourceType.READER.name(), localDataSource);
-        return new DynamicDataSource(remoteDataSource, targetDataSources);
+    public DataSource dataSource() {
+        final RoutingDataSource routingDataSource = new RoutingDataSource();
+
+        final DataSource primaryDataSource = buildDataSource("PrimaryHikariPool", PRIMARY_DATASOURCE_PREFIX);
+        final DataSource replicaDataSource = buildDataSource("ReplicaHikariPool", REPLICA_DATASOURCE_PREFIX);
+
+        final Map<Object, Object> targetDataSources = new HashMap<>();
+        targetDataSources.put(RoutingDataSource.Route.PRIMARY, primaryDataSource);
+        targetDataSources.put(RoutingDataSource.Route.REPLICA, replicaDataSource);
+
+        routingDataSource.setTargetDataSources(targetDataSources);
+        routingDataSource.setDefaultTargetDataSource(primaryDataSource);
+
+        return routingDataSource;
+    }
+
+    private DataSource buildDataSource(String poolName, String dataSourcePrefix) {
+
+        // ToDo : Overwrite how we create data sources
+        final HikariConfig hikariConfig = new HikariConfig();
+
+        hikariConfig.setPoolName(poolName);
+        hikariConfig.setJdbcUrl(environment.getProperty(String.format("%s.jdbc-url", dataSourcePrefix)));
+        hikariConfig.setUsername(environment.getProperty(String.format("%s.username", dataSourcePrefix)));
+        hikariConfig.setPassword(environment.getProperty(String.format("%s.password", dataSourcePrefix)));
+        hikariConfig.setDriverClassName(environment.getProperty(String.format("%s.driver-class-name", dataSourcePrefix)));
+
+        return new HikariDataSource(hikariConfig);
     }
 }
