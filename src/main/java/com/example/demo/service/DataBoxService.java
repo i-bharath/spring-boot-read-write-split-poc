@@ -5,6 +5,7 @@ import com.example.demo.entity.DataBox;
 import com.example.demo.repository.DataBoxRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -17,6 +18,7 @@ public class DataBoxService {
         System.out.println("DataBoxService test");
     }
 
+    @Transactional(readOnly = true)
     public List<DataBox> getAllDataBoxes() {
         return dataBoxRepository.findAll();
     }

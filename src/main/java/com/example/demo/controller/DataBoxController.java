@@ -17,7 +17,6 @@ public class DataBoxController {
     private DataBoxService DataBoxService;
 
 
-    @Transactional(readOnly = true)
     @GetMapping
     public ResponseEntity<List<DataBox>> getAllDataBoxes() {
         return ResponseEntity.ok(DataBoxService.getAllDataBoxes());
