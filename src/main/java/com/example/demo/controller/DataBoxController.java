@@ -5,7 +5,7 @@ import com.example.demo.service.DataBoxService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,11 +18,13 @@ public class DataBoxController {
 
 
     @GetMapping
+    @PreAuthorize("hasPermission(#dataBoxDto, 'VIEW_DATA_ALL')")
     public ResponseEntity<List<DataBox>> getAllDataBoxes() {
         return ResponseEntity.ok(DataBoxService.getAllDataBoxes());
     }
 
     @PostMapping
+    @PreAuthorize("hasPermission(#dataBox, 'VIEW_DATA_ALL')")
     public ResponseEntity<DataBox> createDataBox(@RequestBody DataBox dataBox) {
         return ResponseEntity.status(HttpStatus.CREATED).body(DataBoxService.createDataBox(dataBox));
     }
