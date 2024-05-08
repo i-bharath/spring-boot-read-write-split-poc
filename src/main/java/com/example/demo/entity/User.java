@@ -22,6 +22,9 @@ public class User implements UserDetails {
     private String password;
     private String email;
 
+    @Column(name = "roleid")
+    private Integer role;
+
     // Constructors, getters, and setters
 
     public User() {
@@ -66,6 +69,17 @@ public class User implements UserDetails {
     public void setEmail(String email) {
         this.email = email;
     }
+
+    public Integer getRole(){
+        return role;
+    }
+
+    public Integer setRole(Integer role){
+        this.role = role;
+        return role;
+    }
+
+
 
     // toString() method
 
